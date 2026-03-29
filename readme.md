@@ -1,0 +1,278 @@
+# Neural Variational Monte Carlo (Helium)
+
+A minimal implementation of **Variational Monte Carlo (VMC)** using a neural wavefunction to approximate the ground state energy of the Helium atom.
+
+This project replaces analytical wavefunctions with a **learned ansatz**, while retaining the physical structure required for fermionic systems.
+
+---
+
+## Overview
+
+The wavefunction is modeled as:
+
+ψ(x) = exp( log|det(Slater)| + Jastrow )
+
+- The **Slater determinant** enforces antisymmetry
+
+- The **Jastrow factor** encodes electron correlation
+
+- A neural network parameterizes the orbital structure
+
+Sampling is performed using Metropolis-Hastings.  
+Optimization is driven by the variational principle.
+
+---
+
+## Project Structure
+
+```id="q1x9az"
+.
+├── main.py           # Entry point
+├── train.py          # Training loop
+├── wavefunction.py   # Combines Slater + Jastrow
+├── slater.py         # Neural Slater determinant
+├── jastrow.py        # Correlation factor
+├── sampler.py        # Metropolis-Hastings sampling
+├── hamiltonian.py    # Local energy computation
+├── distances.py      # Electron distance calculations
+├── config.py         # Hyperparameters
+```
+
+---
+
+## Motivation
+
+This project was developed as a continuation of direct, first-principles exploration of electronic structure methods.
+
+Instead of:
+
+- Closed-form hydrogenic solutions
+
+- Deterministic orbital evaluation
+
+we move to:
+
+- Learned wavefunctions
+
+- Stochastic sampling
+
+- Energy minimization via gradients
+
+The goal is not accuracy alone.
+
+The goal is understanding:
+
+- How antisymmetry is enforced in learned systems
+
+- How correlation emerges from simple parametrizations
+
+- How Monte Carlo sampling interacts with optimization
+
+- How automatic differentiation replaces analytic Laplacians
+
+- Where numerical instability appears in log-space formulations
+
+This is a study of **variational quantum mechanics as an algorithm**, not a black-box method.
+
+---
+
+## Architecture
+
+### Wavefunction (`wavefunction.py`)
+
+Combines:
+
+- Slater determinant (antisymmetric structure)
+
+- Jastrow factor (correlation)
+
+Outputs log|ψ| for numerical stability.
+
+---
+
+### Slater Determinant (`slater.py`)
+
+- Neural network maps electron coordinates → orbital values
+
+- Constructs a 2×2 determinant (Helium system)
+
+- Log-determinant used to avoid numerical underflow
+
+---
+
+### Jastrow Factor (`jastrow.py`)
+
+- Pade form correlation function
+
+- Learnable parameters
+
+- Encodes short-range electron-electron behavior
+
+---
+
+### Sampling (`sampler.py`)
+
+- Metropolis-Hastings updates
+
+- Log-probability ratio for stability
+
+- No drift term (pure random walk)
+
+---
+
+### Local Energy (`hamiltonian.py`)
+
+Computed via automatic differentiation:
+
+- Gradient of logψ
+
+- Laplacian via second derivatives
+
+Kinetic term:  
+-½ (∇² logψ + |∇ logψ|²)
+
+Potential:
+
+- Electron-nucleus attraction
+
+- Electron-electron repulsion
+
+---
+
+### Training (`train.py`)
+
+- Energy expectation minimization
+
+- Variance-reduced gradient estimator
+
+- Adam optimizer with step decay
+
+---
+
+### Entry Point (`main.py`)
+
+- Initializes walkers
+
+- Performs thermalization
+
+- Starts optimization loop
+
+---
+
+## Numerical Strategy
+
+### Representation
+
+- Log-space wavefunction to prevent overflow
+
+- Determinant computed explicitly (2-electron system)
+
+---
+
+### Sampling
+
+- Walkers represent electron configurations
+
+- Distribution converges to |ψ|²
+
+---
+
+### Optimization
+
+Loss:
+
+L = ⟨ (E_L - ⟨E_L⟩) logψ ⟩
+
+This avoids direct differentiation of the normalization constant.
+
+---
+
+## Running
+
+```bash
+python main.py
+```
+
+Output:
+
+```id="p8d2xw"
+step N  E = ...  var = ...
+```
+
+Reference:
+
+```id="z7v4rt"
+Helium ground state ≈ -2.903 Hartree
+```
+
+---
+
+## Limitations
+
+- Fixed to two electrons
+
+- No spin-explicit formalism
+
+- No importance sampling (no drift term)
+
+- Single-determinant ansatz
+
+- CPU-only execution
+
+**Current shortcoming:**
+
+The implementation is **computationally slow**.
+
+This is primarily due to:
+
+- Second-order autodiff for Laplacian computation
+
+- Lack of vectorized or optimized sampling
+
+- No GPU acceleration
+
+- Repeated graph construction during energy evaluation
+
+Performance has not been optimized.  
+Clarity and correctness were prioritized over efficiency.
+
+---
+
+## Design Philosophy
+
+- Physics structure is preserved, not replaced
+
+- Neural networks are used where analytical forms are restrictive
+
+- Numerical transparency is prioritized over performance
+
+- No external quantum chemistry libraries
+
+Everything is implemented explicitly to expose the mechanics of VMC.
+
+---
+
+## Future Directions
+
+- Drift-diffusion (importance sampling)
+
+- Multi-determinant expansions
+
+- GPU acceleration
+
+- More efficient Laplacian computation
+
+- Equivariant neural architectures
+
+- Scaling beyond two-electron systems
+
+---
+
+## Author
+
+Lnifelias Stargarden  
+Real name: Bhaskar Malviya
+
+Computational Chemistry | Quantum Chemistry | Scientific Programming
+
+---

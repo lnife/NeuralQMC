@@ -1,0 +1,11 @@
+**pycache**/  
+.mypy_cache/
+
+*.pyc
+
+*.log  
+*.out
+
+*.pt  
+*.pth  
+*.ckpt

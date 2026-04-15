@@ -1,8 +1,8 @@
 import torch
 import torch.optim as optim
 
-from sampler import metropolis_step
-from hamiltonian import local_energy
+from .sampler import metropolis_step
+from .hamiltonian import local_energy
 
 
 def train(model, walkers, config):

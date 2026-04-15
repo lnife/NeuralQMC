@@ -1,10 +1,10 @@
 import torch
 
-import config
+from src import config
 
-from wavefunction import WaveNet
-from train import train
-from sampler import metropolis_step
+from src.wavefunction import WaveNet
+from src.train import train
+from src.sampler import metropolis_step
 
 
 def main():

@@ -268,6 +268,50 @@ Everything is implemented explicitly to expose the mechanics of VMC.
 
 ---
 
+## References
+
+1. Slater determinant formalism  
+   J. C. Slater, _The Theory of Complex Spectra_, Phys. Rev. **34**, 1293–1322 (1929).  
+   DOI: 10.1103/PhysRev.34.1293
+
+2. Hartree product / independent-particle approximation  
+   D. R. Hartree, _The Wave Mechanics of an Atom with a Non-Coulomb Central Field. Part I. Theory and Methods_,  
+   Math. Proc. Cambridge Philos. Soc. **24**, 89–110 (1928).
+
+3. Electron-electron correlation (Jastrow ansatz origin)  
+   R. Jastrow, _Many-Body Problem with Strong Forces_, Phys. Rev. **98**, 1479–1484 (1955).
+
+4. Cusp condition for Coulomb singularities  
+   T. Kato, _On the Eigenfunctions of Many-Particle Systems in Quantum Mechanics_,  
+   Commun. Pure Appl. Math. **10**, 151–177 (1957).
+
+5. Helium Hamiltonian / two-electron Coulomb problem  
+   E. A. Hylleraas, _Neue Berechnung der Energie des Heliums im Grundzustande_,  
+   Z. Phys. **54**, 347–366 (1929).
+
+6. Padé Jastrow correlation form in modern electronic QMC  
+   C. J. Umrigar, M. P. Nightingale, K. J. Runge,  
+   _A Diffusion Monte Carlo Algorithm with Very Small Time-Step Errors_,  
+   J. Chem. Phys. **99**, 2865 (1993).
+
+7. Explicit correlated helium wavefunction product ansatz  
+   R. S. Chauhan and M. K. Harbola,  
+   _Highly Accurate Wavefunctions for Two-Electron Systems Using Two Parameters_,  
+   arXiv:1506.00912 (2015).  
+   DOI: 10.48550/arXiv.1506.00912
+
+8. Slater-Jastrow trial wavefunction in modern neural QMC  
+   D. Pfau, J. S. Spencer, A. G. D. G. Matthews, W. M. C. Foulkes,  
+   _Ab initio solution of the many-electron Schrödinger equation with deep neural networks_,  
+   Phys. Rev. Research **2**, 033429 (2020).  
+   DOI: 10.1103/PhysRevResearch.2.033429
+
+9. Variational / diffusion Monte Carlo foundational review  
+   D. M. Ceperley and B. J. Alder,  
+   _Quantum Monte Carlo_, Science **231**, 555–560 (1986).
+
+---
+
 ## Author
 
 Lnifelias Stargarden  

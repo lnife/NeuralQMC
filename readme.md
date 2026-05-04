@@ -2,35 +2,58 @@
 
 A minimal implementation of **Variational Monte Carlo (VMC)** using a neural wavefunction to approximate the ground state energy of the Helium atom.
 
-This project replaces analytical wavefunctions with a **learned ansatz**, while retaining the physical structure required for fermionic systems.
+This project explores how **physical structure and neural parameterization interact** in variational quantum methods, with a focus on optimization behavior rather than final accuracy.
 
 ---
 
 ## Overview
 
-The wavefunction is modeled as:
+The wavefunction is modeled in log-space as:
 
-ψ(x) = exp( log|det(Slater)| + Jastrow )
+ψ(x) = exp( log ψ_spatial + Jastrow )
 
-- The **Slater determinant** enforces antisymmetry
+- **ψ_spatial**: neural spatial ansatz with explicit physical structure
 
-- The **Jastrow factor** encodes electron correlation
+- **Jastrow factor**: captures electron-electron correlation
 
-- A neural network parameterizes the orbital structure
+Sampling is performed using Metropolis–Hastings, and optimization is driven by the variational principle.
 
-Sampling is performed using Metropolis-Hastings.  
-Optimization is driven by the variational principle.
+---
+
+## Convergence Behavior (Current Investigation)
+
+![Convergence behavior](assets/my_understanding_of_whats_happening.png)
+
+The figure illustrates the optimization behavior observed during training.
+
+- **Slater determinant (left):**  
+  Provides correct antisymmetric structure and a well-behaved energy landscape,  
+  but exhibits **very slow convergence**. Gradients are weak, making optimization inefficient.
+
+- **Nuclear cusp ansatz (right):**  
+  Enforces correct short-range electron–nucleus physics and improves early optimization,  
+  but introduces **instability**, preventing consistent convergence.
+
+### Current Direction
+
+The present implementation prioritizes the **nuclear cusp formulation** to stabilize early training.
+
+The next step is to **reintroduce structured antisymmetry (Slater determinant)** in a controlled manner,  
+rather than training it from scratch.
+
+This is treated as a **continuation problem**:  
+starting from a stable physical prior and gradually increasing expressivity.
 
 ---
 
 ## Project Structure
 
-```id="q1x9az"
+```
 .
 ├── main.py           # Entry point
 ├── train.py          # Training loop
-├── wavefunction.py   # Combines Slater + Jastrow
-├── slater.py         # Neural Slater determinant
+├── wavefunction.py   # Combines spatial ansatz + Jastrow
+├── slater.py         # (Experimental) Slater determinant implementation
 ├── jastrow.py        # Correlation factor
 ├── sampler.py        # Metropolis-Hastings sampling
 ├── hamiltonian.py    # Local energy computation
@@ -42,37 +65,31 @@ Optimization is driven by the variational principle.
 
 ## Motivation
 
-This project was developed as a continuation of direct, first-principles exploration of electronic structure methods.
+This project is a direct exploration of **variational quantum mechanics as an algorithm**.
 
-Instead of:
+Instead of relying on:
 
-- Closed-form hydrogenic solutions
+- closed-form wavefunctions
 
-- Deterministic orbital evaluation
+- deterministic orbital evaluation
 
 we move to:
 
-- Learned wavefunctions
+- learned representations
 
-- Stochastic sampling
+- stochastic sampling
 
-- Energy minimization via gradients
+- gradient-based energy minimization
 
-The goal is not accuracy alone.
+The goal is not just accuracy, but understanding:
 
-The goal is understanding:
+- how physical constraints affect optimization
 
-- How antisymmetry is enforced in learned systems
+- how correlation emerges from simple parameterizations
 
-- How correlation emerges from simple parametrizations
+- how sampling interacts with noisy gradients
 
-- How Monte Carlo sampling interacts with optimization
-
-- How automatic differentiation replaces analytic Laplacians
-
-- Where numerical instability appears in log-space formulations
-
-This is a study of **variational quantum mechanics as an algorithm**, not a black-box method.
+- where instability arises in log-space formulations
 
 ---
 
@@ -82,27 +99,31 @@ This is a study of **variational quantum mechanics as an algorithm**, not a blac
 
 Combines:
 
-- Slater determinant (antisymmetric structure)
+- spatial ansatz (currently cusp-based)
 
-- Jastrow factor (correlation)
+- Jastrow factor
 
 Outputs log|ψ| for numerical stability.
 
 ---
 
-### Slater Determinant (`slater.py`)
+### Spatial Ansatz (`slater.py` / current implementation)
 
-- Neural network maps electron coordinates → orbital values
+Current model:
 
-- Constructs a 2×2 determinant (Helium system)
+- explicit **nuclear cusp condition**: exp(-Z (r₁ + r₂))
 
-- Log-determinant used to avoid numerical underflow
+- neural correction to orbital structure
+
+This provides a strong physical prior near singularities.
+
+A Slater determinant formulation exists but is **not currently active** due to poor convergence behavior during initial training.
 
 ---
 
 ### Jastrow Factor (`jastrow.py`)
 
-- Pade form correlation function
+- Padé form correlation function
 
 - Learnable parameters
 
@@ -112,7 +133,7 @@ Outputs log|ψ| for numerical stability.
 
 ### Sampling (`sampler.py`)
 
-- Metropolis-Hastings updates
+- Metropolis–Hastings updates
 
 - Log-probability ratio for stability
 
@@ -124,38 +145,39 @@ Outputs log|ψ| for numerical stability.
 
 Computed via automatic differentiation:
 
-- Gradient of logψ
+- gradient of logψ
 
 - Laplacian via second derivatives
 
-Kinetic term:  
--½ (∇² logψ + |∇ logψ|²)
+Kinetic term:
 
-Potential:
+T = -½ (∇² logψ + |∇ logψ|²)
 
-- Electron-nucleus attraction
+Potential includes:
 
-- Electron-electron repulsion
+- electron–nucleus attraction
+
+- electron–electron repulsion
 
 ---
 
 ### Training (`train.py`)
 
-- Energy expectation minimization
+- Variational energy minimization
 
 - Variance-reduced gradient estimator
 
-- Adam optimizer with step decay
+- Adam optimizer with learning rate decay
 
 ---
 
 ### Entry Point (`main.py`)
 
-- Initializes walkers
+- initializes walkers
 
-- Performs thermalization
+- performs thermalization
 
-- Starts optimization loop
+- runs optimization loop
 
 ---
 
@@ -165,7 +187,7 @@ Potential:
 
 - Log-space wavefunction to prevent overflow
 
-- Determinant computed explicitly (2-electron system)
+- Explicit handling of Coulomb singularities
 
 ---
 
@@ -183,7 +205,7 @@ Loss:
 
 L = ⟨ (E_L - ⟨E_L⟩) logψ ⟩
 
-This avoids direct differentiation of the normalization constant.
+Avoids explicit normalization of the wavefunction.
 
 ---
 
@@ -195,13 +217,13 @@ python main.py
 
 Output:
 
-```id="p8d2xw"
+```
 step N  E = ...  var = ...
 ```
 
-Reference:
+Reference value:
 
-```id="z7v4rt"
+```
 Helium ground state ≈ -2.903 Hartree
 ```
 
@@ -209,50 +231,31 @@ Helium ground state ≈ -2.903 Hartree
 
 ## Limitations
 
-- Fixed to two electrons
+- Restricted to two-electron systems
 
-- No spin-explicit formalism
+- No explicit spin formalism
 
 - No importance sampling (no drift term)
 
-- Single-determinant ansatz
-
 - CPU-only execution
 
-**Current shortcoming:**
+- Second-order autodiff is computationally expensive
 
-The implementation is **computationally slow**.
+### Current Technical Issue
 
-This is primarily due to:
+The main bottleneck is **optimization stability**, not model expressivity.
 
-- Second-order autodiff for Laplacian computation
+- Slater determinant: stable but too slow
 
-- Lack of vectorized or optimized sampling
+- Cusp-based ansatz: faster but unstable
 
-- No GPU acceleration
-
-- Repeated graph construction during energy evaluation
-
-Performance has not been optimized.  
-Clarity and correctness were prioritized over efficiency.
-
----
-
-## Design Philosophy
-
-- Physics structure is preserved, not replaced
-
-- Neural networks are used where analytical forms are restrictive
-
-- Numerical transparency is prioritized over performance
-
-- No external quantum chemistry libraries
-
-Everything is implemented explicitly to expose the mechanics of VMC.
+Resolving this tradeoff is the central focus of the project.
 
 ---
 
 ## Future Directions
+
+- Controlled interpolation between cusp and Slater representations
 
 - Drift-diffusion (importance sampling)
 
@@ -260,7 +263,7 @@ Everything is implemented explicitly to expose the mechanics of VMC.
 
 - GPU acceleration
 
-- More efficient Laplacian computation
+- Efficient Laplacian computation
 
 - Equivariant neural architectures
 
@@ -270,47 +273,27 @@ Everything is implemented explicitly to expose the mechanics of VMC.
 
 ## References
 
-1. Slater determinant formalism  
-   J. C. Slater, _The Theory of Complex Spectra_, Phys. Rev. **34**, 1293–1322 (1929).  
-   DOI: 10.1103/PhysRev.34.1293
+1. J. C. Slater, Phys. Rev. **34**, 1293 (1929)
 
-2. Hartree product / independent-particle approximation  
-   D. R. Hartree, _The Wave Mechanics of an Atom with a Non-Coulomb Central Field. Part I. Theory and Methods_,  
-   Math. Proc. Cambridge Philos. Soc. **24**, 89–110 (1928).
+2. D. R. Hartree, Math. Proc. Cambridge **24**, 89 (1928)
 
-3. Electron-electron correlation (Jastrow ansatz origin)  
-   R. Jastrow, _Many-Body Problem with Strong Forces_, Phys. Rev. **98**, 1479–1484 (1955).
+3. R. Jastrow, Phys. Rev. **98**, 1479 (1955)
 
-4. Cusp condition for Coulomb singularities  
-   T. Kato, _On the Eigenfunctions of Many-Particle Systems in Quantum Mechanics_,  
-   Commun. Pure Appl. Math. **10**, 151–177 (1957).
+4. T. Kato, Commun. Pure Appl. Math. **10**, 151 (1957)
 
-5. Helium Hamiltonian / two-electron Coulomb problem  
-   E. A. Hylleraas, _Neue Berechnung der Energie des Heliums im Grundzustande_,  
-   Z. Phys. **54**, 347–366 (1929).
+5. E. A. Hylleraas, Z. Phys. **54**, 347 (1929)
 
-6. Padé Jastrow correlation form in modern electronic QMC  
-   C. J. Umrigar, M. P. Nightingale, K. J. Runge,  
-   _A Diffusion Monte Carlo Algorithm with Very Small Time-Step Errors_,  
-   J. Chem. Phys. **99**, 2865 (1993).
+6. Umrigar et al., J. Chem. Phys. **99**, 2865 (1993)
 
-7. Explicit correlated helium wavefunction product ansatz  
-   R. S. Chauhan and M. K. Harbola,  
-   _Highly Accurate Wavefunctions for Two-Electron Systems Using Two Parameters_,  
-   arXiv:1506.00912 (2015).  
-   DOI: 10.48550/arXiv.1506.00912
+7. Chauhan & Harbola, arXiv:1506.00912
 
-8. Slater-Jastrow trial wavefunction in modern neural QMC  
-   D. Pfau, J. S. Spencer, A. G. D. G. Matthews, W. M. C. Foulkes,  
-   _Ab initio solution of the many-electron Schrödinger equation with deep neural networks_,  
-   Phys. Rev. Research **2**, 033429 (2020).  
-   DOI: 10.1103/PhysRevResearch.2.033429
+8. Pfau et al., Phys. Rev. Research **2**, 033429 (2020)
 
-9. Variational / diffusion Monte Carlo foundational review  
-   D. M. Ceperley and B. J. Alder,  
-   _Quantum Monte Carlo_, Science **231**, 555–560 (1986).
+9. Ceperley & Alder, Science **231**, 555 (1986)
 
 ---
+
+
 
 ## Author
 
